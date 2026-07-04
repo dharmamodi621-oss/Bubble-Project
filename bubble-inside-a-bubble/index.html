@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Bubble Inside a Bubble — The Science of Surface Tension</title>
+<meta name="description" content="An interactive exhibit on the physics of surface tension, soap films, and the bubble-inside-a-bubble experiment. Presented by Alchemy Club." />
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- LOADING SCREEN                                                -->
+<!-- ============================================================ -->
+<div id="loader" aria-hidden="true">
+  <div class="loader-stage">
+    <svg id="loader-bubble-svg" viewBox="0 0 200 200" width="140" height="140">
+      <defs>
+        <radialGradient id="loaderFilm" cx="35%" cy="30%" r="75%">
+          <stop offset="0%" stop-color="#eaffff" stop-opacity="0.9"/>
+          <stop offset="45%" stop-color="#8fe9ff" stop-opacity="0.35"/>
+          <stop offset="75%" stop-color="#3d7bff" stop-opacity="0.18"/>
+          <stop offset="100%" stop-color="#04060c" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <circle id="loader-ring" cx="100" cy="100" r="70" fill="url(#loaderFilm)" stroke="rgba(111,233,255,0.6)" stroke-width="1"/>
+    </svg>
+    <div class="loader-readout">
+      <span id="loader-percent">00</span><span class="unit">%</span>
+    </div>
+    <p class="loader-caption">CALIBRATING SURFACE TENSION&nbsp;&hellip;</p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PERSISTENT BACKGROUND — floating bubbles + particles          -->
+<!-- ============================================================ -->
+<canvas id="bg-canvas"></canvas>
+<div class="grain-overlay" aria-hidden="true"></div>
+
+<!-- Custom cursor -->
+<div id="cursor-dot" aria-hidden="true"></div>
+<div id="cursor-ring" aria-hidden="true"></div>
+
+<!-- Mute toggle -->
+<button id="audio-toggle" class="audio-toggle" aria-label="Toggle ambient sound" aria-pressed="false">
+  <svg id="icon-muted" viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1-3.29-2.5-4.03v8.05c1.5-.73 2.5-2.25 2.5-4.02z"/></svg>
+  <svg id="icon-unmuted" viewBox="0 0 24 24" width="18" height="18" style="display:none"><path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1-3.29-2.5-4.03v8.05c1.5-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+</button>
+<audio id="ambient-audio" loop preload="none">
+  <source src="assets/audio/ambient-water.mp3" type="audio/mpeg">
+</audio>
+
+<!-- Progress rail -->
+<div class="progress-rail" aria-hidden="true"><div class="progress-rail-fill" id="progress-fill"></div></div>
+
+<main id="main" class="hidden-until-ready">
+
+  <!-- ============================================================ -->
+  <!-- HERO                                                          -->
+  <!-- ============================================================ -->
+  <section id="hero" class="section hero">
+    <div id="hero-canvas-wrap"><canvas id="hero-canvas"></canvas></div>
+
+    <div class="hero-content">
+      <p class="eyebrow mono">ALCHEMY CLUB &middot; LIVE EXHIBIT</p>
+      <h1 class="hero-title">
+        <span class="line">Bubble</span>
+        <span class="line hero-title-sub">inside a</span>
+        <span class="line">Bubble</span>
+      </h1>
+      <p class="hero-subtitle">Discover the fascinating science hidden inside a simple soap bubble.</p>
+      <button class="cta magnetic" id="start-exploring">
+        <span>Start Exploring</span>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+
+    <div class="hero-readout mono" id="hero-readout">
+      <div><span class="label">DIAMETER</span><span class="value" id="readout-diameter">62.0 mm</span></div>
+      <div><span class="label">FILM THICKNESS</span><span class="value" id="readout-thickness">480 nm</span></div>
+      <div><span class="label">SURFACE TENSION</span><span class="value">25 mN/m</span></div>
+    </div>
+
+    <div class="scroll-cue mono" aria-hidden="true">SCROLL<span class="scroll-cue-line"></span></div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 02 — WATCH THE EXPERIMENT                             -->
+  <!-- ============================================================ -->
+  <section id="watch" class="section exhibit">
+    <div class="exhibit-frame">
+      <p class="eyebrow mono">EXHIBIT&nbsp;01</p>
+      <h2 class="section-title">Watch the Experiment</h2>
+      <p class="section-lead">The live demonstration you just witnessed, captured up close.</p>
+
+      <div class="video-glass reveal-up">
+        <div class="video-glass-border"></div>
+        <div class="video-placeholder" id="video-placeholder">
+          <!-- Replace with an actual <video> element pointing to assets/video/experiment.mp4 -->
+          <button class="play-btn" id="play-btn" aria-label="Play experiment video">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M8 5v14l11-7L8 5z" fill="currentColor"/></svg>
+          </button>
+          <p class="video-hint mono">assets/video/experiment.mp4</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 03 — HOW THE EXPERIMENT WORKS (TIMELINE)              -->
+  <!-- ============================================================ -->
+  <section id="how" class="section exhibit">
+    <div class="exhibit-frame">
+      <p class="eyebrow mono">EXHIBIT&nbsp;02</p>
+      <h2 class="section-title">How the Experiment Works</h2>
+      <p class="section-lead">Five steps stand between a bowl of soap water and a bubble within a bubble.</p>
+
+      <ol class="timeline" id="timeline">
+        <li class="timeline-step" data-step="01">
+          <div class="timeline-node"></div>
+          <div class="timeline-icon" data-icon="mix"></div>
+          <h3>Prepare the soap solution</h3>
+          <p>Dish soap, water, and a touch of glycerine — glycerine slows evaporation so the film survives longer.</p>
+        </li>
+        <li class="timeline-step" data-step="02">
+          <div class="timeline-node"></div>
+          <div class="timeline-icon" data-icon="blow"></div>
+          <h3>Create the first bubble</h3>
+          <p>A wand or ring is dipped and drawn through the air, stretching a thin liquid film into a sphere.</p>
+        </li>
+        <li class="timeline-step" data-step="03">
+          <div class="timeline-icon" data-icon="straw"></div>
+          <h3>Insert a soap-coated straw</h3>
+          <p>The straw is wetted with soap solution first, so it can pierce the outer film without popping it.</p>
+        </li>
+        <li class="timeline-step" data-step="04">
+          <div class="timeline-node"></div>
+          <div class="timeline-icon" data-icon="breath"></div>
+          <h3>Blow carefully</h3>
+          <p>A slow, steady breath through the straw pushes air into the space inside the first bubble.</p>
+        </li>
+        <li class="timeline-step" data-step="05">
+          <div class="timeline-node"></div>
+          <div class="timeline-icon" data-icon="bubble2"></div>
+          <h3>A second bubble forms inside</h3>
+          <p>A smaller bubble inflates within the first — two independent films, sharing one wall of soap.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 04 — THE SCIENCE (interactive 3D bubble)              -->
+  <!-- ============================================================ -->
+  <section id="science" class="section exhibit exhibit--dark">
+    <div class="exhibit-frame exhibit-frame--wide">
+      <p class="eyebrow mono">EXHIBIT&nbsp;03</p>
+      <h2 class="section-title">The Science, Up Close</h2>
+      <p class="section-lead">Drag to rotate. Scroll to inspect. Tap a marker to read the instrument.</p>
+
+      <div class="science-stage">
+        <canvas id="science-canvas"></canvas>
+        <div class="science-hud" id="science-hud">
+          <!-- markers injected by JS -->
+        </div>
+        <div class="science-panel" id="science-panel">
+          <button class="science-panel-close" id="science-panel-close" aria-label="Close">&times;</button>
+          <p class="science-panel-tag mono">READOUT</p>
+          <h3 id="science-panel-title">Surface Tension</h3>
+          <p id="science-panel-body"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 05 — MICROSCOPIC WORLD                                -->
+  <!-- ============================================================ -->
+  <section id="micro" class="section exhibit">
+    <div class="exhibit-frame">
+      <p class="eyebrow mono">EXHIBIT&nbsp;04</p>
+      <h2 class="section-title">The Microscopic World</h2>
+      <p class="section-lead">Zoom into the film wall: soap molecules lining up head-out, tail-in, holding the water between them.</p>
+    </div>
+    <div class="micro-stage">
+      <canvas id="micro-canvas"></canvas>
+      <div class="micro-legend mono">
+        <div><span class="dot dot--head"></span>Hydrophilic head</div>
+        <div><span class="dot dot--tail"></span>Hydrophobic tail</div>
+        <div><span class="dot dot--water"></span>Water molecule</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 06 — REAL-WORLD APPLICATIONS                          -->
+  <!-- ============================================================ -->
+  <section id="applications" class="section exhibit">
+    <div class="exhibit-frame exhibit-frame--wide">
+      <p class="eyebrow mono">EXHIBIT&nbsp;05</p>
+      <h2 class="section-title">Where This Physics Works for a Living</h2>
+      <p class="section-lead">Surface tension isn't confined to bath time — it's load-bearing science.</p>
+
+      <div class="app-grid" id="app-grid">
+        <!-- cards injected by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 07 — QUIZ                                             -->
+  <!-- ============================================================ -->
+  <section id="quiz" class="section exhibit exhibit--dark">
+    <div class="exhibit-frame">
+      <p class="eyebrow mono">EXHIBIT&nbsp;06</p>
+      <h2 class="section-title">Test What You've Learned</h2>
+
+      <div class="quiz-card" id="quiz-card">
+        <div class="quiz-progress" id="quiz-progress">
+          <span class="quiz-progress-dot" data-i="0"></span>
+          <span class="quiz-progress-dot" data-i="1"></span>
+          <span class="quiz-progress-dot" data-i="2"></span>
+          <span class="quiz-progress-dot" data-i="3"></span>
+          <span class="quiz-progress-dot" data-i="4"></span>
+        </div>
+
+        <div id="quiz-question-wrap">
+          <p class="quiz-count mono" id="quiz-count">QUESTION 1 / 5</p>
+          <h3 id="quiz-question"></h3>
+          <div class="quiz-options" id="quiz-options"></div>
+        </div>
+
+        <div id="quiz-complete" class="quiz-complete hidden">
+          <canvas id="confetti-canvas"></canvas>
+          <h3>Exhibit complete.</h3>
+          <p id="quiz-score-line"></p>
+          <button class="cta magnetic" id="quiz-restart">Try again</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 08 — FUN FACTS                                        -->
+  <!-- ============================================================ -->
+  <section id="facts" class="section exhibit">
+    <div class="exhibit-frame exhibit-frame--wide">
+      <p class="eyebrow mono">EXHIBIT&nbsp;07</p>
+      <h2 class="section-title">Numbers Worth Floating On</h2>
+
+      <div class="facts-grid" id="facts-grid">
+        <div class="fact-bubble">
+          <span class="fact-number" data-target="4" data-suffix=" µm">0</span>
+          <p>A typical soap film is only a few micrometers thick — thinner than a strand of spider silk.</p>
+        </div>
+        <div class="fact-bubble">
+          <span class="fact-number" data-target="72" data-suffix=" mN/m">0</span>
+          <p>Pure water's surface tension. Soap cuts it to roughly a third of that value.</p>
+        </div>
+        <div class="fact-bubble">
+          <span class="fact-number" data-target="100" data-suffix="%">0</span>
+          <p>Bubbles always minimize surface area for the volume they enclose — a sphere every time.</p>
+        </div>
+        <div class="fact-bubble">
+          <span class="fact-number" data-target="2" data-suffix=" walls">0</span>
+          <p>Where two bubbles meet, they always form a shared wall — and always at 120° where three films meet.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 09 — GALLERY                                          -->
+  <!-- ============================================================ -->
+  <section id="gallery" class="section exhibit">
+    <div class="exhibit-frame exhibit-frame--wide">
+      <p class="eyebrow mono">EXHIBIT&nbsp;08</p>
+      <h2 class="section-title">From the Bench</h2>
+      <p class="section-lead">Drop your own experiment photos into <code>assets/images/</code> — these are placeholders.</p>
+
+      <div class="masonry" id="masonry"><!-- injected by JS --></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 10 — THANK YOU                                        -->
+  <!-- ============================================================ -->
+  <section id="thanks" class="section thanks">
+    <canvas id="thanks-canvas"></canvas>
+    <div class="thanks-content">
+      <p class="eyebrow mono">END OF EXHIBIT</p>
+      <h2 class="thanks-title">Curiosity is a<br/>low surface-tension liquid.</h2>
+      <p class="thanks-sub">It spreads.</p>
+      <div class="thanks-credits mono">
+        <span>ALCHEMY CLUB</span>
+        <span class="dividerdot">&middot;</span>
+        <span>CHEMICAL ENGINEERING DEPARTMENT</span>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============================================================ -->
+<!-- SCRIPTS                                                       -->
+<!-- ============================================================ -->
+<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<script src="js/particles.js"></script>
+<script src="js/bubble-scene.js"></script>
+<script src="js/micro-and-thanks.js"></script>
+<script src="js/quiz.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
